@@ -4,28 +4,35 @@ from models import Movie, User, db
 
 
 class DataManager:
+    """Encapsulates CRUD operations for users and movies using SQLAlchemy."""
     def __init__(self, database) -> None:
+        """Create a new data manager bound to the given SQLAlchemy instance."""
         self.db = database
 
     def create_user(self, name: str) -> User:
+        """Create and persist a new user."""
         user = User(name=name.strip())
         self.db.session.add(user)
         self.db.session.commit()
         return user
 
     def get_users(self) -> List[User]:
+        """Return all users."""
         return User.query.all()
 
     def get_user(self, user_id: int) -> Optional[User]:
+        """Return a single user by id, or None if not found."""
         return User.query.get(user_id)
 
     def get_movies(self, user_id: int) -> List[Movie]:
+        """Return all movies for a given user id."""
         user = self.get_user(user_id)
         if not user:
             return []
         return list(user.movies)
 
     def add_movie(self, user_id: int, movie_data: dict) -> Optional[Movie]:
+        """Add a movie to a user's list and return it, or None if user missing."""
         user = self.get_user(user_id)
         if not user:
             return None
@@ -42,6 +49,7 @@ class DataManager:
         return movie
 
     def update_movie(self, user_id: int, movie_id: int, updates: dict) -> bool:
+        """Update a movie for a given user. Returns True on success."""
         movie = Movie.query.filter_by(id=movie_id, user_id=user_id).first()
         if not movie:
             return False
@@ -59,6 +67,7 @@ class DataManager:
         return True
 
     def delete_movie(self, user_id: int, movie_id: int) -> bool:
+        """Delete a movie for a given user. Returns True on success."""
         movie = Movie.query.filter_by(id=movie_id, user_id=user_id).first()
         if not movie:
             return False

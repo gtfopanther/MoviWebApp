@@ -31,6 +31,7 @@ with app.app_context():
 
 
 def fetch_movie_from_omdb(title: str) -> Tuple[Optional[dict], Optional[str]]:
+    """Fetch movie data from OMDb by title."""
     api_key = os.getenv("OMDB_API_KEY")
     if not api_key:
         return None, "OMDb API key missing. Set OMDB_API_KEY in your environment."
@@ -63,11 +64,13 @@ def fetch_movie_from_omdb(title: str) -> Tuple[Optional[dict], Optional[str]]:
 
 @app.get("/")
 def index():
+    """Render the user list homepage."""
     return render_template("index.html", users=manager.get_users())
 
 
 @app.route("/users", methods=["GET", "POST"])
 def users():
+    """List users or create a new user."""
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         if not name:
@@ -82,6 +85,7 @@ def users():
 
 @app.get("/users/<int:user_id>/movies")
 def user_movies(user_id: int):
+    """Show movies for a given user."""
     user = manager.get_user(user_id)
     if not user:
         flash("User not found.")
@@ -92,6 +96,7 @@ def user_movies(user_id: int):
 
 @app.post("/users/<int:user_id>/movies")
 def add_movie(user_id: int):
+    """Add a movie to a user's list using OMDb metadata."""
     title = request.form.get("title", "").strip()
     if not title:
         flash("Please enter a movie title.")
@@ -112,6 +117,7 @@ def add_movie(user_id: int):
 
 @app.get("/users/<int:user_id>/movies/<int:movie_id>/edit")
 def edit_movie(user_id: int, movie_id: int):
+    """Render the edit form for a movie."""
     user = manager.get_user(user_id)
     if not user:
         flash("User not found.")
@@ -127,6 +133,7 @@ def edit_movie(user_id: int, movie_id: int):
 
 @app.post("/users/<int:user_id>/movies/<int:movie_id>/update")
 def update_movie(user_id: int, movie_id: int):
+    """Update a movie's details for a user."""
     title = request.form.get("title", "").strip()
     if not title:
         flash("Title cannot be empty.")
@@ -149,6 +156,7 @@ def update_movie(user_id: int, movie_id: int):
 
 @app.post("/users/<int:user_id>/movies/<int:movie_id>/delete")
 def delete_movie(user_id: int, movie_id: int):
+    """Delete a movie from a user's list."""
     if manager.delete_movie(user_id, movie_id):
         flash("Movie deleted.")
     else:
@@ -159,11 +167,13 @@ def delete_movie(user_id: int, movie_id: int):
 
 @app.errorhandler(404)
 def page_not_found(error):
+    """Render the 404 error page."""
     return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
+    """Render the 500 error page."""
     return render_template("500.html"), 500
 
 
