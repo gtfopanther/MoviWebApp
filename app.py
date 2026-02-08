@@ -63,7 +63,7 @@ def fetch_movie_from_omdb(title: str) -> Tuple[Optional[dict], Optional[str]]:
 
 @app.get("/")
 def index():
-    return redirect(url_for("users"))
+    return render_template("index.html", users=manager.get_users())
 
 
 @app.route("/users", methods=["GET", "POST"])
@@ -75,9 +75,9 @@ def users():
         else:
             manager.create_user(name)
             flash("User created.")
-            return redirect(url_for("users"))
+            return redirect(url_for("index"))
 
-    return render_template("users.html", users=manager.get_users())
+    return render_template("index.html", users=manager.get_users())
 
 
 @app.get("/users/<int:user_id>/movies")
@@ -125,7 +125,7 @@ def edit_movie(user_id: int, movie_id: int):
     return render_template("edit_movie.html", user=user, movie=movie)
 
 
-@app.post("/users/<int:user_id>/movies/<int:movie_id>/edit")
+@app.post("/users/<int:user_id>/movies/<int:movie_id>/update")
 def update_movie(user_id: int, movie_id: int):
     title = request.form.get("title", "").strip()
     if not title:

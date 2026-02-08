@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="page-header">
+    <h1>Users</h1>
+  </section>
+
+  <section class="card">
+    <ul class="simple-list">
+      {% for user in users %}
+        <li>
+          <a href="{{ url_for('user_movies', user_id=user.id) }}">{{ user.name }}</a>
+        </li>
+      {% else %}
+        <li>No users yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Add a user</h2>
+    <form class="form-row" method="post" action="{{ url_for('users') }}">
+      <input type="text" name="name" placeholder="User name" required>
+      <button class="btn primary" type="submit">Create</button>
+    </form>
+  </section>
+{% endblock %}
