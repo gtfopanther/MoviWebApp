@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="page-header">
+    <h1>Users</h1>
+    <p class="subtitle">Select a user to manage their favorite movies.</p>
+  </section>
+
+  <section class="card">
+    <h2>Add a user</h2>
+    <form class="form-row" method="post">
+      <input type="text" name="name" placeholder="User name" required>
+      <button class="btn primary" type="submit">Create</button>
+    </form>
+  </section>
+
+  <section class="user-grid">
+    {% for user in users %}
+      <a class="user-card" href="{{ url_for('user_movies', user_id=user.id) }}">
+        <div class="user-avatar">{{ user.name[:1]|upper }}</div>
+        <div>
+          <div class="user-name">{{ user.name }}</div>
+          <div class="user-meta">{{ user.movies|length }} movies</div>
+        </div>
+      </a>
+    {% else %}
+      <div class="empty-state">No users yet. Create one above.</div>
+    {% endfor %}
+  </section>
+{% endblock %}
