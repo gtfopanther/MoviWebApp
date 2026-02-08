@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="page-header">
+    <h1>Something went wrong</h1>
+    <p class="subtitle">An unexpected error occurred. Please try again.</p>
+  </section>
+
+  <section class="card">
+    <a class="btn primary" href="{{ url_for('index') }}">Back to Users</a>
+  </section>
+{% endblock %}
