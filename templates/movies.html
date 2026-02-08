@@ -19,14 +19,14 @@
     {% for movie in movies %}
       <article class="movie-card">
         <div class="poster-frame">
-          {% if movie.poster %}
-            <img src="{{ movie.poster }}" alt="{{ movie.title }} poster">
+          {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" alt="{{ movie.name }} poster">
           {% else %}
             <div class="poster-placeholder">No poster</div>
           {% endif %}
         </div>
         <div class="movie-info">
-          <div class="movie-title">{{ movie.title }}</div>
+          <div class="movie-title">{{ movie.name }}</div>
           <a class="btn small" href="{{ url_for('edit_movie', user_id=user.id, movie_id=movie.id) }}">Update</a>
           <div class="movie-meta">Year: {{ movie.year or 'Unknown' }}</div>
           <div class="movie-meta">Director: {{ movie.director or 'Unknown' }}</div>

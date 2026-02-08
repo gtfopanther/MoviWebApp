@@ -6,6 +6,7 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from dotenv import load_dotenv
 
 from data_manager import DataManager
+from models import db
 
 
 load_dotenv()
@@ -13,8 +14,20 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "dev-secret-key")
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "movies.json")
-manager = DataManager(DATA_PATH)
+BASE_DIR = os.path.dirname(__file__)
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///" + os.path.join(BASE_DIR, "data", "movies.db")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+manager = DataManager(db)
+
+with app.app_context():
+    os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
+    db.create_all()
 
 
 def fetch_movie_from_omdb(title: str) -> Tuple[Optional[dict], Optional[str]]:
@@ -41,10 +54,10 @@ def fetch_movie_from_omdb(title: str) -> Tuple[Optional[dict], Optional[str]]:
         poster = ""
 
     return {
-        "title": payload.get("Title", title).strip(),
+        "name": payload.get("Title", title).strip(),
         "year": payload.get("Year", ""),
         "director": payload.get("Director", ""),
-        "poster": poster,
+        "poster_url": poster,
     }, None
 
 
@@ -60,7 +73,7 @@ def users():
         if not name:
             flash("Please enter a user name.")
         else:
-            manager.add_user(name)
+            manager.create_user(name)
             flash("User created.")
             return redirect(url_for("users"))
 
@@ -74,7 +87,7 @@ def user_movies(user_id: int):
         flash("User not found.")
         return redirect(url_for("users"))
 
-    return render_template("movies.html", user=user, movies=user.get("movies", []))
+    return render_template("movies.html", user=user, movies=manager.get_movies(user_id))
 
 
 @app.post("/users/<int:user_id>/movies")
@@ -89,7 +102,10 @@ def add_movie(user_id: int):
         flash(error)
         return redirect(url_for("user_movies", user_id=user_id))
 
-    manager.add_movie(user_id, movie_data)
+    if not manager.add_movie(user_id, movie_data):
+        flash("User not found.")
+        return redirect(url_for("users"))
+
     flash("Movie added.")
     return redirect(url_for("user_movies", user_id=user_id))
 
@@ -101,7 +117,7 @@ def edit_movie(user_id: int, movie_id: int):
         flash("User not found.")
         return redirect(url_for("users"))
 
-    movie = next((item for item in user.get("movies", []) if item["id"] == movie_id), None)
+    movie = next((item for item in user.movies if item.id == movie_id), None)
     if not movie:
         flash("Movie not found.")
         return redirect(url_for("user_movies", user_id=user_id))
@@ -111,16 +127,17 @@ def edit_movie(user_id: int, movie_id: int):
 
 @app.post("/users/<int:user_id>/movies/<int:movie_id>/edit")
 def update_movie(user_id: int, movie_id: int):
-    updates = {
-        "title": request.form.get("title", ""),
-        "year": request.form.get("year", ""),
-        "director": request.form.get("director", ""),
-        "poster": request.form.get("poster", ""),
-    }
-
-    if not updates["title"].strip():
+    title = request.form.get("title", "").strip()
+    if not title:
         flash("Title cannot be empty.")
         return redirect(url_for("edit_movie", user_id=user_id, movie_id=movie_id))
+
+    updates = {
+        "name": title,
+        "year": request.form.get("year", ""),
+        "director": request.form.get("director", ""),
+        "poster_url": request.form.get("poster", ""),
+    }
 
     if manager.update_movie(user_id, movie_id, updates):
         flash("Movie updated.")

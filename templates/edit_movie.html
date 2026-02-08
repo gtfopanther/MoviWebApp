@@ -4,14 +4,14 @@
   <a class="back-link" href="{{ url_for('user_movies', user_id=user.id) }}">Back to Movies</a>
 
   <section class="page-header">
-    <h1>Update {{ movie.title }}</h1>
+    <h1>Update {{ movie.name }}</h1>
   </section>
 
   <section class="card">
     <form class="form-stack" method="post" action="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}">
       <label>
         Title
-        <input type="text" name="title" value="{{ movie.title }}" required>
+        <input type="text" name="title" value="{{ movie.name }}" required>
       </label>
       <label>
         Year
@@ -23,7 +23,7 @@
       </label>
       <label>
         Poster URL
-        <input type="text" name="poster" value="{{ movie.poster }}">
+        <input type="text" name="poster" value="{{ movie.poster_url }}">
       </label>
       <div class="form-actions">
         <button class="btn primary" type="submit">Save</button>
